@@ -18,11 +18,12 @@ O Código está disponível sob uma liçenca GPL v3
 
 import os
 import sys
+import time
 
-from PyQt5.QtCore import QUrl, Qt
+from PyQt5.QtCore import QEventLoop, QUrl, Qt, QPropertyAnimation, QEasingCurve
 from PyQt5.QtMultimedia import QMediaContent, QMediaPlayer
 from PyQt5.QtMultimediaWidgets import QVideoWidget
-from PyQt5.QtWidgets import QApplication, QPushButton, QStackedLayout, QVBoxLayout, QMainWindow, QWidget, QLabel
+from PyQt5.QtWidgets import QGraphicsOpacityEffect, QApplication, QPushButton, QStackedLayout, QVBoxLayout, QMainWindow, QWidget, QLabel
 
 
 class VideoWindow(QMainWindow):
@@ -30,11 +31,11 @@ class VideoWindow(QMainWindow):
     def __init__(self, parent=None):
         super(VideoWindow, self).__init__(parent)
         self.setWindowTitle("Barulhômetro")
-        videos = {'leve':'endereco',
-                  'medio':'endereco',
-                  'forte':'endereco',
-                  'mega':'endereco'}
-
+        self.videos = {'leve':QMediaContent(QUrl.fromLocalFile(os.path.abspath("recursos/leve.mp4"))),
+                  'medio':QMediaContent(QUrl.fromLocalFile(os.path.abspath("recursos/medio.mp4"))),
+                  'forte':QMediaContent(QUrl.fromLocalFile(os.path.abspath("recursos/forte.mp4"))),
+                  'mega':QMediaContent(QUrl.fromLocalFile(os.path.abspath("recursos/mega.mp4")))}
+        self.acabou = False
         self.setStyleSheet("""QLabel{
                             margin: 40px;
                             qproperty-alignment: AlignCenter;
@@ -54,13 +55,13 @@ class VideoWindow(QMainWindow):
         self.layout = QStackedLayout(wid)
 
         # Cria o widget das opções
-        options_widget = QWidget(self)
+        self.options_widget = QWidget(self)
         # Cria imagem de fundo
-        options_widget.setStyleSheet(".QWidget{border-image: url(recursos/fotinha.jpeg) 0 0 0 0 stretch stretch;}")
+        self.options_widget.setStyleSheet(".QWidget{border-image: url(recursos/fotinha.jpeg) 0 0 0 0 stretch stretch;}")
         # Cria o layout do widget das opções
-        layout_widgets = QVBoxLayout(options_widget)
-        titulo = QLabel("Barulhômetro")
-        titulo.setStyleSheet("font-size:48px;")
+        layout_widgets = QVBoxLayout(self.options_widget)
+        self.titulo = QLabel("Barulhômetro")
+        self.titulo.setStyleSheet("font-size:48px;")
         leve = QLabel("Aqui entra descrição rápida do terremoto leve")
         medio = QLabel("Aqui entra descrição rápida do terremoto medio")
         pesado = QLabel("Aqui entra descrição rápida do terremoto pesado")
@@ -68,7 +69,7 @@ class VideoWindow(QMainWindow):
         video = QPushButton("Vídeo")
         video.clicked.connect(self.openFile)
         layout_widgets.setAlignment(Qt.AlignCenter)
-        layout_widgets.addWidget(titulo)
+        layout_widgets.addWidget(self.titulo)
         layout_widgets.addWidget(leve)
         layout_widgets.addWidget(medio)
         layout_widgets.addWidget(pesado)
@@ -76,19 +77,35 @@ class VideoWindow(QMainWindow):
         layout_widgets.addWidget(video)
 
         self.layout.addWidget(video_widget)
-        self.layout.addWidget(options_widget)
+        self.layout.addWidget(self.options_widget)
         video_widget.setStyleSheet("background:rgba(0,0,0,0)")
         self.layout.setCurrentIndex(1)
         self.mediaPlayer.setVideoOutput(video_widget)
         self.mediaPlayer.error.connect(self.handleError)
 
     def fadeout(self):
-        self.mediaPlayer.setMedia(QMediaContent(QUrl.fromLocalFile("/home/debian/Pictures/fotinha.jpeg")))
+        # w is your widget
+        eff = QGraphicsOpacityEffect(self)
+        self.options_widget.setGraphicsEffect(eff)
+        self.a = QPropertyAnimation(self)
+        self.a.setPropertyName("opacity")
+        self.a.setTargetObject(eff)
+        self.a.setDuration(1300)
+        self.a.setStartValue(1)
+        self.a.setEndValue(0)
+        self.a.setEasingCurve(QEasingCurve.OutBack)
+        loop = QEventLoop()
+        self.a.finished.connect(loop.quit)
+        self.a.start()
+        loop.exec_()  # Execution stops here until finished called
+        # now implement a slot called hideThisWidget() to do
+        # things like hide any background dimmer, etc.
 
     def openFile(self):
-        self.mediaPlayer.setMedia(
-            QMediaContent(QUrl.fromLocalFile(os.path.abspath("recursos/example.mp4"))))
+        self.mediaPlayer.setMedia(QMediaContent(QUrl.fromLocalFile(os.path.abspath("recursos/leve.mp4"))))
         self.mediaPlayer.play()
+        self.mediaPlayer.pause()
+        self.fadeout()
         self.layout.setCurrentIndex(0)
 
     def exitCall(self):
@@ -98,8 +115,7 @@ class VideoWindow(QMainWindow):
         if self.mediaPlayer.state() == QMediaPlayer.PlayingState:
             self.mediaPlayer.pause()
         else:
-            self.mediaPlayer.setMedia(
-                QMediaContent(QUrl.fromLocalFile(os.path.abspath("recursos/example2.mp4"))))
+            self.mediaPlayer.setMedia(videos.get('leve'))
             self.mediaPlayer.setPosition(2000)
             self.mediaPlayer.play()
 
