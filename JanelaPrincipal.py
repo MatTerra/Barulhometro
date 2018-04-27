@@ -19,6 +19,7 @@ O Código está disponível sob uma liçenca GPL v3
 import os
 import sys
 import time
+from gpiozero import Button
 
 from PyQt5.QtCore import QEventLoop, QUrl, Qt, QPropertyAnimation, QEasingCurve
 from PyQt5.QtMultimedia import QMediaContent, QMediaPlayer
@@ -124,8 +125,15 @@ class VideoWindow(QMainWindow):
         pass
 
 
+button = Button(2)
+button.whenPressed = #inserir aqui o video 1
+button2 = Button(3)
+button3 = Button(4)
+button4 = Button(5)
+
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     player = VideoWindow()
     player.showFullScreen()
+
     sys.exit(app.exec_())
