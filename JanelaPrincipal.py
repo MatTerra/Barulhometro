@@ -21,21 +21,44 @@ import sys
 import time
 from gpiozero import Button
 
-from PyQt5.QtCore import QEventLoop, QUrl, Qt, QPropertyAnimation, QEasingCurve
+from PyQt5.QtCore import pyqtSignal, QEventLoop, QUrl, Qt, QPropertyAnimation, QEasingCurve
 from PyQt5.QtMultimedia import QMediaContent, QMediaPlayer
 from PyQt5.QtMultimediaWidgets import QVideoWidget
 from PyQt5.QtWidgets import QGraphicsOpacityEffect, QApplication, QPushButton, QStackedLayout, QVBoxLayout, QMainWindow, QWidget, QLabel
 
 
 class VideoWindow(QMainWindow):
-
+    signal_btn = pyqtSignal(str)
+    
+    def clickBtn1(self):
+        self.signal_btn.emit(self.videos.get("leve"))
+    def clickBtn2(self):
+        self.signal_btn.emit(self.videos.get("medio"))
+    def clickBtn3(self):
+        self.signal_btn.emit(self.videos.get("forte"))
+    def clickBtn4(self):
+        self.signal_btn.emit(self.videos.get("mega"))    
+    
+    def on_click(self, value):
+        self.openFile(value)
+        
     def __init__(self, parent=None):
         super(VideoWindow, self).__init__(parent)
         self.setWindowTitle("Barulhômetro")
-        self.videos = {'leve':QMediaContent(QUrl.fromLocalFile(os.path.abspath("recursos/leve.mp4"))),
-                  'medio':QMediaContent(QUrl.fromLocalFile(os.path.abspath("recursos/medio.mp4"))),
-                  'forte':QMediaContent(QUrl.fromLocalFile(os.path.abspath("recursos/forte.mp4"))),
-                  'mega':QMediaContent(QUrl.fromLocalFile(os.path.abspath("recursos/mega.mp4")))}
+        self.videos = {'leve':os.path.abspath("recursos/leve.mp4"),
+                  'medio':os.path.abspath("recursos/medio.mp4"),
+                  'forte':os.path.abspath("recursos/forte.mp4"),
+                  'mega':os.path.abspath("recursos/mega.mp4")}
+        self.button1 = Button(2)
+        self.button1.when_pressed = self.clickBtn1
+        self.button2 = Button(3)
+        self.button2.when_pressed = self.clickBtn2
+        self.button3 = Button(4)
+        self.button3.when_pressed = self.clickBtn3
+        self.button4 = Button(5)
+        self.button4.when_pressed = self.clickBtn4
+        self.signal_btn.connect(self.on_click)
+    
         self.acabou = False
         self.setStyleSheet("""QLabel{
                             margin: 40px;
@@ -101,9 +124,9 @@ class VideoWindow(QMainWindow):
         loop.exec_()  # Execution stops here until finished called
         # now implement a slot called hideThisWidget() to do
         # things like hide any background dimmer, etc.
-
-    def openFile(self):
-        self.mediaPlayer.setMedia(QMediaContent(QUrl.fromLocalFile(os.path.abspath("recursos/leve.mp4"))))
+    
+    def openFile(self, url):
+        self.mediaPlayer.setMedia(QMediaContent(QUrl.fromLocalFile(url)))
         self.mediaPlayer.play()
         self.mediaPlayer.pause()
         self.fadeout()
@@ -125,11 +148,7 @@ class VideoWindow(QMainWindow):
         pass
 
 
-button = Button(2)
-button.whenPressed = #inserir aqui o video 1
-button2 = Button(3)
-button3 = Button(4)
-button4 = Button(5)
+
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
