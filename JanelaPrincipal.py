@@ -128,20 +128,11 @@ class VideoWindow(QMainWindow):
     def openFile(self, url):
         self.mediaPlayer.setMedia(QMediaContent(QUrl.fromLocalFile(url)))
         self.mediaPlayer.play()
-        self.mediaPlayer.pause()
         self.fadeout()
         self.layout.setCurrentIndex(0)
 
     def exitCall(self):
         sys.exit(app.exec_())
-
-    def play(self):
-        if self.mediaPlayer.state() == QMediaPlayer.PlayingState:
-            self.mediaPlayer.pause()
-        else:
-            self.mediaPlayer.setMedia(videos.get('leve'))
-            self.mediaPlayer.setPosition(2000)
-            self.mediaPlayer.play()
 
     def handleError(self):
         #self.errorLabel.setText("Error: " + self.mediaPlayer.errorString())
